@@ -1,0 +1,11 @@
+---
+
+- name: quagga restarted
+  service:
+    name: '{{ item }}'
+    state: 'restarted'
+  with_items:
+    - zebra
+    - ospfd
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

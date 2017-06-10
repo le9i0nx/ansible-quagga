@@ -1,0 +1,28 @@
+---
+
+- name: "add interface to ospf"
+  quagga:
+    interfaces:
+      - name: "{{ item }}"
+        raw:
+          - "ip ospf authentication message-digest"
+          - "ip ospf message-digest-key 1 md5 9ecf335473062a9de94b2cd2da7d6c0d"
+          - "ip ospf hello-interval 10"
+          - "ip ospf dead-interval 40"
+          - "ip ospf priority 99"
+          - "ip ospf cost 40"
+          - "ip ospf network broadcast"
+    router:
+      ospf:
+        - "log-adjacency-changes"
+        - "network 10.1.16.0/24 area 0"
+        - "network 10.254.222.0/24 area 0"
+        - "area 0 authentication message-digest"
+    router_id: "10.10.10.1"
+  with_items:
+    - "{{ ansible_interfaces }}"
+  when: "'wg_' in item"
+
+  tags: debug
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2
