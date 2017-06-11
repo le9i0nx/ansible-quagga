@@ -1,0 +1,32 @@
+---
+
+quagga_router_id_range: "172.16.30.0/24"
+
+quagga_router_id: "{% for host in groups['service_quagga'] %}{% if inventory_hostname == host %}{{ quagga_router_id_range | ipaddr(loop.index) | ipaddr('address') }}{% endif %}{% endfor %}"
+
+quagga_interfaces: "{{ quagga_interfaces_default + quagga_interfaces_group + quagga_interfaces_host }}"
+
+quagga_interfaces_default: '{% for host in ansible_interfaces %}{% if "wg_" in host %}[ "{{  host }}" ] +{% endif %}{% endfor %} []'
+quagga_interfaces_group: []
+quagga_interfaces_host: []
+
+quagga__dependencies_ferm: True
+quagga__ferm_dependent_rules:
+
+  - type: 'accept'
+    protocol: [ 'ospf' ]
+    role: 'le9i0nx.quagga'
+    name: 'ospf'
+    accept_any: True
+
+  - chain: 'FORWARD'
+    type: 'accept'
+    interface_present: '{{ quagga_interfaces }}'
+    outerface_present: '{{ quagga_interfaces }}'
+    weight: '10'
+    role: 'le9i0nx.quagga'
+    role_weight: '30'
+    name: 'ospf'
+    comment: 'Forward ospf traffic between hosts'
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

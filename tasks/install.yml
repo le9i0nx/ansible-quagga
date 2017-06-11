@@ -9,9 +9,10 @@
     - 'quagga-ospfd'
 
 - name: create conf file
-  file:
-    path: /etc/quagga/{{ item }}
-    state: touch
+  copy:
+    content: ""
+    dest: /etc/quagga/{{ item }}
+    force: no
     owner: quagga
     group: quagga
     mode: 0640
@@ -20,7 +21,7 @@
     - "vtysh.conf"
     - "ospfd.conf"
   notify:
-    - 'quagga restart'
+    - 'quagga restarted'
 
 - meta: flush_handlers
 
