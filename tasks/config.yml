@@ -1,0 +1,39 @@
+---
+
+- name: "log syslog"
+  quagga_command:
+    commands:
+      - "log syslog"
+
+- name: "router-id"
+  quagga_command:
+    commands:
+      - "router-id {{ quagga_router_id }}"
+      - "interface lo"
+      - "ip address {{ quagga_router_id }}/32"
+      - "exit"
+      - "router ospf"
+      - "network {{ quagga_router_id }}/32 area 0"
+      - "router-id {{ quagga_router_id }}"
+  notify:
+    - 'quagga restarted'
+
+- name: "router ospf"
+  quagga_command:
+    commands:
+      - "router ospf"
+      - "log-adjacency-changes"
+      - "area 0 authentication message-digest"
+
+- name: "interface ospf"
+  quagga_command:
+    commands:
+      - "interface {{ item }}"
+      - "ip ospf area 0.0.0.0"
+      - "ip ospf network broadcast"
+      - "ip ospf authentication message-digest"
+      - "ip ospf message-digest-key 2 md5 9ecf335473062a9d"
+  with_items:
+    - "{{ quagga_interfaces }}"
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

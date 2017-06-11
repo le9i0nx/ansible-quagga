@@ -1,0 +1,28 @@
+---
+
+- name: install required packages
+  apt:
+    name: '{{ item }}'
+    state: 'present'
+    install_recommends: False
+  with_flattened:
+    - 'quagga-ospfd'
+
+- name: create conf file
+  copy:
+    content: ""
+    dest: /etc/quagga/{{ item }}
+    force: no
+    owner: quagga
+    group: quagga
+    mode: 0640
+  with_items:
+    - "zebra.conf"
+    - "vtysh.conf"
+    - "ospfd.conf"
+  notify:
+    - 'quagga restarted'
+
+- meta: flush_handlers
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

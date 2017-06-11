@@ -1,0 +1,6 @@
+---
+
+- include: install.yml
+- include: config.yml
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

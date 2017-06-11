@@ -1,0 +1,29 @@
+---
+
+dependencies:
+
+    - role: debops.ferm
+      tags:
+        - 'depend::ferm'
+        - 'depend::ferm:quagga'
+        - 'depend-of::quagga'
+        - 'type::dependency'
+      ferm_dependent_rules:
+        - '{{ quagga__ferm_dependent_rules }}'
+      when: quagga__dependencies_ferm | bool
+
+galaxy_info:
+  author: 'Aleksej Gavrilov'
+  description: 'Configure wireguard packages'
+  license: 'MIT'
+  min_ansible_version: '2.1.0'
+  platforms:
+  - name: Debian
+    versions:
+    - stretch
+  galaxy_tags:
+    - networking
+    - route
+    - ospf
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2
