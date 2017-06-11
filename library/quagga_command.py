@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # {c} 2017, Aleksey Gavrilov <le9i0nx+ansible@gmail.com>

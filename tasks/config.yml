@@ -5,6 +5,13 @@
     commands:
       - "log syslog"
 
+- name: "security"
+  quagga_command:
+    commands:
+      - "access-list localhost-in-only permit 127.0.0.1/32"
+      - "line vty"
+      - "access-class localhost-in-only"
+
 - name: "router-id"
   quagga_command:
     commands:
