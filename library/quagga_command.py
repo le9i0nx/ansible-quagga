@@ -18,60 +18,84 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
+ANSIBLE_METADATA = {'metadata_version': '1.0',
+                    'status': ['preview'],
+                    'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: quagga_command
-version_added: 2.2
+version_added: 2.4
 short_description: Provides configuring quaggas
 description:
-     - The M(quagga) module takes the command name followed by a list of space-delimited arguments.
-     - The given command will be executed on all selected nodes.
+    - The M(quagga_command) module takes the command name followed by a list of space-delimited arguments.
+    - The given command will be executed on all selected nodes.
+    - Documentation for M (quagga) can be found U(http://www.nongnu.org/quagga/docs.html)
 options:
     raw:
         description:
             - vtysh command after 'configure terminal'
+author:
+    - Aleksey Gavrilov (@le9i0nx)
+'''
 
- 
-author: Aleksey Gavrilov
-"""
-
-EXAMPLES = """
+EXAMPLES = '''
 # Example for Ansible Playbooks.
-- name: "add interface to ospf"
+
+- name: "log syslog"
   quagga_command:
     commands:
-      - "interface {{ item }}"
-      - "ip ospf authentication message-digest"
-      - "ip ospf message-digest-key 1 md5 xxxx"
-      - "ip ospf hello-interval 10"
-      - "ip ospf dead-interval 40"
-      - "ip ospf priority 99"
-      - "ip ospf cost 40"
-      - "ip ospf network broadcast"
-  with_items:
-    - "{{ ansible_interfaces }}"
-  when: "'wg_' in item"
+      - "log syslog"
 
-- name: "add router to ospf"
+- name: "security"
+  quagga_command:
+    commands:
+      - "access-list localhost-in-only permit 127.0.0.1/32"
+      - "line vty"
+      - "access-class localhost-in-only"
+
+- name: "router-id"
+  quagga_command:
+    commands:
+      - "router-id {{ quagga_router_id }}"
+      - "interface lo"
+      - "ip address {{ quagga_router_id }}/32"
+      - "exit"
+      - "router ospf"
+      - "network {{ quagga_router_id }}/32 area 0"
+      - "router-id {{ quagga_router_id }}"
+  notify:
+    - 'quagga restarted'
+
+- name: "router ospf"
   quagga_command:
     commands:
       - "router ospf"
       - "log-adjacency-changes"
-      - "network 10.1.16.0/24 area 0"
-      - "network 10.254.222.0/24 area 0"
       - "area 0 authentication message-digest"
-      - "exit"
-      - "router-id 10.10.10.1"
 
-"""
+- name: "interface ospf"
+  quagga_command:
+    commands:
+      - "interface {{ item }}"
+      - "ip ospf area 0.0.0.0"
+      - "ip ospf network broadcast"
+      - "ip ospf authentication message-digest"
+      - "ip ospf message-digest-key 2 md5 xxxxxxxxxxxxxxxx"
+  with_items:
+    - "{{ ansible_interfaces }}"
 
-def run_cmd(module, cmd, check_rc=True, split_lines=True):
-    try:
-        (rc, out, err) = module.run_command(cmd, check_rc=check_rc)
-    except Exception, e:
-        module.fail_json(msg=e.strerror)
+'''
+
+RETURN = ''' # '''
+
+from ansible.module_utils.basic import AnsibleModule
+
+
+def run_cmd(module, cmd, check_rc=True):
+    rc, out, err = module.run_command(cmd, check_rc=check_rc)
     return out
+
 
 def set_commands(module):
     command = ["vtysh", "'configure terminal'", "'end'", "'write memory'"]
@@ -79,22 +103,17 @@ def set_commands(module):
         command.insert(-2, "'{}'".format(raw))
     run_cmd(module, ' -c '.join(command))
 
-def main():
 
+def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            commands = dict(type='list', required=True),
-        ),
-    )
+        argument_spec=dict(
+            commands=dict(type='list', required=True)))
 
     before_status = run_cmd(module, "vtysh -c 'show run' -c 'end'")
-
     set_commands(module)
-
     after_status = run_cmd(module, "vtysh -c 'show run' -c 'end'")
-    module.exit_json(changed=before_status!=after_status)
+    module.exit_json(changed=before_status != after_status)
 
-from ansible.module_utils.basic import *
 
 if __name__ == '__main__':
     main()
